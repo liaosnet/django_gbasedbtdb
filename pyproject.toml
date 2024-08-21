@@ -6,11 +6,11 @@ requires = [
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = "django_informixdb"
-description = "A database driver for Django to connect to an Informix db via ODBC"
+name = "django_gbasedbtdb"
+description = "A database driver for Django to connect to an GBase 8s db via ODBC"
 keywords = [
     "django",
-    "informix",
+    "gbasedbt",
 ]
 classifiers=[
     'Development Status :: 4 - Beta',
@@ -27,17 +27,30 @@ classifiers=[
 
 dynamic = ["version", "readme"]
 
+dependencies = [
+    "django >= 3.2.0, < 5",
+    "pyodbc >= 4.0.0, < 5"
+]
+
+[optional-dependencies]
+dev = ['check-manifest']
+all =['%(test)s']
+test = ['coverage']
+
 [[project.authors]]
-name = "Reecetech"
-email = "opensource@reecetech.com.au"
+name = "liaosnet"
+email = "liaosnet@gbasedbt.com"
 
 [project.urls]
-Homepage = "https://github.com/reecetech/django_informixdb"
-Repository = "https://github.com/reecetech/django_informixdb"
+Homepage = "https://github.com/liaosnet/django_gbasedbtdb"
+Repository = "https://github.com/liaosnet/django_gbasedbtdb"
 
 [project.license]
 text = "APLv2"
 
 [tool.setuptools.dynamic]
-version = {attr = "django_informixdb.VERSION"}
+version = {attr = "django_gbasedbtdb.VERSION"}
 readme = {file = "README.rst"}
+
+[tool.distutils.bdist_wheel]
+universal = true

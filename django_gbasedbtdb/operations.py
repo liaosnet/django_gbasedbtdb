@@ -9,18 +9,18 @@ from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
 
 class DatabaseOperations(BaseDatabaseOperations):
-    compiler_module = "django_informixdb.compiler"
+    compiler_module = "django_gbasedbtdb.compiler"
 
     def quote_name(self, name):
         return name
 
     def last_insert_id(self, cursor, table_name, pk_name):
-        operation = "SELECT DBINFO('sqlca.sqlerrd1') FROM SYSTABLES WHERE TABID=1"
+        operation = "SELECT DBINFO('sqlca.sqlerrd1'),DBINFO('serial8') FROM DUAL"
         cursor.execute(operation)
         row = cursor.fetchone()
         last_identity_val = None
         if row is not None:
-            last_identity_val = int(row[0])
+            last_identity_val = int(row[0]) + int(row[1])
         return last_identity_val
 
     def fulltext_search_sql(self, field_name):
@@ -114,7 +114,7 @@ class DatabaseOperations(BaseDatabaseOperations):
     def adapt_datetimefield_value(self, value):
         # TODO: fix this, convert to DATETIME YEAR TO FRACTION(5)
         # value is like '2016-05-23 12:26:56.111909+00:00',
-        # since informix only support fraction(5),
+        # since gbasedbt only support fraction(5),
         # we need remove the last digit for micro-seconds
         return value.strftime('%Y-%m-%d %H:%M:%S.f')[:-1] if value else value
 
@@ -125,7 +125,7 @@ class DatabaseOperations(BaseDatabaseOperations):
         # The reset_sequences keyword arg is provided by Django 3.1 and later,
         # but like the sequences arg, it is ignored by this driver.
 
-        # NB: The generated SQL below is specific to Informix
+        # NB: The generated SQL below is specific to GBase 8s
         sql = ['%s %s %s;' % (
             style.SQL_KEYWORD('DELETE'),
             style.SQL_KEYWORD('FROM'),

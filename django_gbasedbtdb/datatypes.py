@@ -34,7 +34,7 @@ from enum import Enum
     4118 = ROW (named)
 """
 
-class InformixTypes(Enum):
+class GBasedbtTypes(Enum):
     SQL_TYPE_CHAR = 0, 'CharField'
     SQL_TYPE_SMALLINT = 1, 'SmallIntegerField'
     SQL_TYPE_INTEGER = 2, 'IntegerField'
@@ -55,8 +55,8 @@ class InformixTypes(Enum):
     SQL_TYPE_INTERVAL = 14, 'DurationField'
     SQL_TYPE_NCHAR = 15, 'CharField'
     SQL_TYPE_NVARCHAR = 16, 'CharField'
-    SQL_TYPE_INT8 = 17, 'IntegerField'
-    SQL_TYPE_SERIAL8 = 18, 'AutoField'
+    SQL_TYPE_INT8 = 17, 'BigIntegerField'
+    SQL_TYPE_SERIAL8 = 18, 'BigAutoField'
     SQL_TYPE_SET = 19, None
     SQL_TYPE_MASK = 31, None
     SQL_TYPE_UDTVAR = 40, 'CharField'
@@ -64,7 +64,7 @@ class InformixTypes(Enum):
     SQL_TYPE_LVARCHAR = 43, 'CharField'
     SQL_TYPE_BOOLEAN = 45, 'BoolField'
     SQL_TYPE_BIGINT = 52, 'BigIntegerField'
-    SQL_TYPE_BIG_SERIAL = 53, 'AutoField'
+    SQL_TYPE_BIG_SERIAL = 53, 'BigAutoField'
 
     def __init__(self, num, field = None):
         self.num = num

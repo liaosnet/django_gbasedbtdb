@@ -1,12 +1,12 @@
 from django.db.backends.base.introspection import BaseDatabaseIntrospection, FieldInfo, TableInfo
 
-from .datatypes import InformixTypes
+from .datatypes import GBasedbtTypes
 from .tableignore import EXCLUDED_TABLES
 
 
 class DatabaseIntrospection(BaseDatabaseIntrospection):
     # Map type codes to Django Field types.
-    data_types_reverse = InformixTypes.field_map()
+    data_types_reverse = GBasedbtTypes.field_map()
 
     def get_table_list(self, cursor):
         cursor.execute('SELECT tabname, tabtype FROM systables')
@@ -40,7 +40,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                    for c in cursor.fetchall()]
         items = []
         for column in columns:
-            if column[1] in (InformixTypes.SQL_TYPE_NUMERIC.num, InformixTypes.SQL_TYPE_DECIMAL.num):
+            if column[1] in (GBasedbtTypes.SQL_TYPE_NUMERIC.num, GBasedbtTypes.SQL_TYPE_DECIMAL.num):
                 column[4] = int(column[3] / 256)
                 column[5] = column[3] - column[4] * 256
             items.append(FieldInfo(*column))

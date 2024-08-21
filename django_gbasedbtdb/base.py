@@ -1,7 +1,7 @@
 """
-informix database backend for Django.
+gbasedbt database backend for Django.
 
-Requires informixdb
+Requires gbasedbtdb
 """
 import logging
 import os
@@ -51,14 +51,14 @@ def decoder(value, encodings=('utf-8',)):
 
 
 class DatabaseWrapper(BaseDatabaseWrapper):
-    vendor = 'informixdb'
+    vendor = 'gbasedbtdb'
     Database = pyodbc
 
     DRIVER_MAP = {
-        'DARWIN': '/Applications/IBM/informix/lib/cli/iclit09b.dylib',
-        'LINUX': '/opt/IBM/informix/lib/cli/iclit09b.so',
-        'WINDOWS32bit': 'IBM INFORMIX ODBC DRIVER (32-bit)',
-        'WINDOWS64bit': 'IBM INFORMIX ODBC DRIVER (64-bit)',
+        'DARWIN': '/Applications/gbasedbt/lib/cli/iclit09b.dylib',
+        'LINUX': '/opt/gbase/lib/cli/iclit09b.so',
+        'WINDOWS32bit': 'GBase ODBC DRIVER (32-bit)',
+        'WINDOWS64bit': 'GBase ODBC DRIVER (64-bit)',
     }
 
     ISOLATION_LEVEL = {
@@ -70,31 +70,32 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     data_types = {
         'AutoField': 'serial',
-        'BigAutoField': 'bigserial',
+        'BigAutoField': 'serial8',
         'BinaryField': 'blob',
         'BooleanField': 'boolean',
-        'CharField': 'lvarchar(%(max_length)s)',
-        'CommaSeparatedIntegerField': 'lvarchar(%(max_length)s)',
+        'CharField': 'varchar(%(max_length)s)',
+        'CommaSeparatedIntegerField': 'varchar(%(max_length)s)',
         'DateField': 'date',
         'DateTimeField': 'datetime year to fraction(5)',
         'DecimalField': 'decimal',
         'DurationField': 'interval',
-        'FileField': 'lvarchar(%(max_length)s)',
-        'FilePathField': 'lvarchar(%(max_length)s)',
+        'FileField': 'varchar(%(max_length)s)',
+        'FilePathField': 'varchar(%(max_length)s)',
         'FloatField': 'smallfloat',
         'IntegerField': 'integer',
-        'BigIntegerField': 'bigint',
-        'IPAddressField': 'char(15)',
-        'GenericIPAddressField': 'char(39)',
+        'BigIntegerField': 'int8',
+        'IPAddressField': 'varchar(15)',
+        'GenericIPAddressField': 'varchar(39)',
         'NullBooleanField': 'boolean',
         'OneToOneField': 'integer',
         'PositiveIntegerField': 'integer',
         'PositiveSmallIntegerField': 'smallint',
-        'SlugField': 'lvarchar(%(max_length)s)',
+        'SlugField': 'varchar(%(max_length)s)',
         'SmallIntegerField': 'smallint',
-        'TextField': 'lvarchar(%(max_length)s)',
+        'TextField': 'varchar(%(max_length)s)',
         'TimeField': 'datetime hour to second',
-        'UUIDField': 'char(32)',
+        'UUIDField': 'varchar(36)',
+        'JSONField': 'json',
     }
 
     data_type_check_constraints = {
@@ -199,7 +200,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         try:
             return self.DRIVER_MAP[system]
         except KeyError:
-            raise ImproperlyConfigured('cannot locate informix driver, please specify')
+            raise ImproperlyConfigured('cannot locate gbasedbt driver, please specify')
 
     def get_connection_params(self):
         settings = self.settings_dict
@@ -207,7 +208,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         if 'DSN' not in settings:
             for k in ['NAME', 'SERVER', 'USER', 'PASSWORD']:
                 if k not in settings:
-                    raise ImproperlyConfigured('{} is a required setting for an informix connection'.format(k))
+                    raise ImproperlyConfigured('{} is a required setting for an gbasedbt connection'.format(k))
         conn_params = settings.copy()
 
         # Ensure the driver is set in the options
@@ -215,11 +216,11 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         if 'DRIVER' not in options or options['DRIVER'] is None:
             options['DRIVER'] = self.get_driver_path()
         if platform.system().upper() != 'WINDOWS':
-            sqlhosts = os.environ.get('INFORMIXSQLHOSTS')
+            sqlhosts = os.environ.get('GBASEDBTSQLHOSTS')
             if not sqlhosts or not os.path.exists(sqlhosts):
-                raise ImproperlyConfigured('Cannot find Informix sqlhosts at {}'.format(sqlhosts))
+                raise ImproperlyConfigured('Cannot find GBase 8s sqlhosts at {}'.format(sqlhosts))
             if not os.path.exists(options['DRIVER']):
-                raise ImproperlyConfigured('cannot find Informix driver at {}'.format(options['DRIVER']))
+                raise ImproperlyConfigured('cannot find GBase 8s driver at {}'.format(options['DRIVER']))
         conn_params['OPTIONS'] = options
 
         conn_params['AUTOCOMMIT'] = False if 'AUTOCOMMIT' not in conn_params else conn_params['AUTOCOMMIT']
@@ -247,7 +248,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             parts.append('CPTimeout={}'.format(conn_params['OPTIONS']['CPTIMEOUT']))
 
         connection_string = ';'.join(parts)
-        logging.debug('Connecting to Informix')
+        logging.debug('Connecting to GBase 8s')
         self.connection = self._get_connection_with_retries(connection_string, conn_params)
         self.connection.setencoding(encoding='UTF-8')
 
@@ -258,7 +259,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
         # This will set SQL_C_CHAR, SQL_C_WCHAR and SQL_BINARY to 32000
         # this max length is actually just what the database internally
-        # supports. e.g. the biggest `LONGVARCHAR` field in informix is
+        # supports. e.g. the biggest `LONGVARCHAR` field in gbasedbt is
         # 32000, you would need to split anything bigger over multiple fields
         # This limit will not effect schema defined lengths, which will just
         # truncate values greater than the limit.
@@ -266,6 +267,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
         self.connection.add_output_converter(-101, lambda r: r.decode('utf-8'))  # Constraints
         self.connection.add_output_converter(-391, lambda r: r.decode('utf-16-be'))  # Integrity Error
+
+        self.connection.add_output_converter(-114, self.handle_sql_infx_bigint_as_bigint)
 
         self.connection.add_output_converter(pyodbc.SQL_CHAR, self._output_converter)
         self.connection.add_output_converter(pyodbc.SQL_WCHAR, self._output_converter)
@@ -317,7 +320,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def _unescape(self, raw):
         """
-        For some reason the Informix ODBC driver seems to double escape new line characters.
+        For some reason the GBase 8s ODBC driver seems to double escape new line characters.
 
         This little handler converts them back.
 
@@ -328,11 +331,14 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     def _output_converter(self, raw):
         return decoder(self._unescape(raw), self.encodings)
 
+    def handle_sql_infx_bigint_as_bigint(self, value):
+        return int.from_bytes(value, byteorder='little', signed=False)
+
     def init_connection_state(self):
         pass
 
     def create_cursor(self, name=None):
-        logging.debug('Creating Informix cursor')
+        logging.debug('Creating GBase 8s cursor')
         return CursorWrapper(self.connection.cursor(), self)
 
     def _set_autocommit(self, autocommit):

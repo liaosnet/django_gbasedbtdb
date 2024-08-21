@@ -19,7 +19,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def execute(self, sql, params=[]):
         """
-        Informix adds an index to foreign keys automatically
+        GBase 8s adds an index to foreign keys automatically
 
         This silences the error when Django tries to do the same thing independently
         """
@@ -32,7 +32,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def skip_default(self, field):
         """
-        It's not easy to handle defaults easily for informix because of its weird syntax
+        It's not easy to handle defaults easily for gbasedbt because of its weird syntax
         An example for this is to add default for some datetime field:
 
         ALTER TABLE django_admin_log MODIFY ( action_time datetime year to fraction(5)

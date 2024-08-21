@@ -1,3 +1,27 @@
+Metadata-Version: 2.1
+Name: django_gbasedbtdb
+Version: 1.11.5
+Summary: A database driver for Django to connect to an GBase 8s db via ODBC
+Author-email: liaosnet <liaosnet@gbasedbt.com>
+License: APLv2
+Project-URL: Homepage, https://github.com/liaosnet/django_gbasedbtdb
+Project-URL: Repository, https://github.com/liaosnet/django_gbasedbtdb
+Keywords: django,gbasedbt
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
+Classifier: Topic :: Scientific/Engineering
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Requires-Dist: django<5,>=3.2.0
+Requires-Dist: pyodbc<5,>=4.0.0
+
 Django GBasedbtDB
 ==================
 

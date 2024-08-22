@@ -77,7 +77,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         'CommaSeparatedIntegerField': 'varchar(%(max_length)s)',
         'DateField': 'date',
         'DateTimeField': 'datetime year to fraction(5)',
-        'DecimalField': 'decimal',
+        'DecimalField': 'decimal(%(max_digits)s, %(decimal_places)s)',
         'DurationField': 'interval',
         'FileField': 'varchar(%(max_length)s)',
         'FilePathField': 'varchar(%(max_length)s)',
@@ -88,6 +88,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         'GenericIPAddressField': 'varchar(39)',
         'NullBooleanField': 'boolean',
         'OneToOneField': 'integer',
+        'PositiveBigIntegerField': 'int8',
         'PositiveIntegerField': 'integer',
         'PositiveSmallIntegerField': 'smallint',
         'SlugField': 'varchar(%(max_length)s)',
@@ -95,10 +96,12 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         'TextField': 'varchar(%(max_length)s)',
         'TimeField': 'datetime hour to second',
         'UUIDField': 'varchar(36)',
-        'JSONField': 'json',
+        'JSONField': 'varchar(4096)',
+        'URLField': 'varchar(1024)',
     }
 
     data_type_check_constraints = {
+        'PositiveBigIntegerField': '%(column)s >= 0',
         'PositiveIntegerField': '%(column)s >= 0',
         'PositiveSmallIntegerField': '%(column)s >= 0',
     }
@@ -153,7 +156,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self._validation_enabled = options.get("VALIDATE_CONNECTION", False)
         self._validation_interval = options.get("VALIDATION_INTERVAL", 300)
         self._next_validation = time.time() + self._validation_interval
-        self._validation_query = options.get("VALIDATION_QUERY", "SELECT 1 FROM sysmaster:sysdual")
+        self._validation_query = options.get("VALIDATION_QUERY", "SELECT 1 FROM DUAL")
         self.encodings = options.get('encodings', ('utf-8', 'cp1252', 'iso-8859-1'))
         # make lookup operators to be collation-sensitive if needed
         self.collation = options.get('collation', None)
@@ -216,7 +219,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         if 'DRIVER' not in options or options['DRIVER'] is None:
             options['DRIVER'] = self.get_driver_path()
         if platform.system().upper() != 'WINDOWS':
-            sqlhosts = os.environ.get('GBASEDBTSQLHOSTS')
+            csdkdir = os.environ.get('GBASEDBTDIR','/opt/gbase')
+            sqlhosts = os.environ.get('GBASEDBTSQLHOSTS', f'{csdkdir}/etc/sqlhosts')
             if not sqlhosts or not os.path.exists(sqlhosts):
                 raise ImproperlyConfigured('Cannot find GBase 8s sqlhosts at {}'.format(sqlhosts))
             if not os.path.exists(options['DRIVER']):

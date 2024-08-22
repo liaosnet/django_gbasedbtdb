@@ -14,6 +14,9 @@ class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
         return name
 
+    def max_in_list_size(self):
+        return 1000
+
     def last_insert_id(self, cursor, table_name, pk_name):
         operation = "SELECT DBINFO('sqlca.sqlerrd1'),DBINFO('serial8') FROM DUAL"
         cursor.execute(operation)
